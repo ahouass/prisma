@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgres://aiman:1234@db:5432/mydb
+    depends_on:
+      db:
+        condition: service_healthy
+    
+  db:
+    build: ./database
+    environment:
+      POSTGRES_USER: aiman
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: mydb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiman -d mydb"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+volumes:
+  db_data:
+
+networks:
+  default:
+    name: my_network
